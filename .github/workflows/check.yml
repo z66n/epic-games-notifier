@@ -1,39 +1,18 @@
-name: Epic Games Notifier
+name: Epic Notifier
 on:
   schedule:
-    - cron: '30 16 * * *'  # Runs daily at 16:30 UTC
-  workflow_dispatch:       # Allow manual triggers
+    - cron: '30 16 * * *'  # 4:30 PM UTC
+  workflow_dispatch:
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
-      - name: Cache game data
-        uses: actions/cache@v3
-        with:
-          path: games_cache.json
-          key: games-${{ hashFiles('epic_notifier.py') }}
-          restore-keys: |
-            games-
-
-      - name: Install dependencies
-        run: pip install requests
-
-      - name: Run notifier
+      - run: pip install requests
+      - run: python epic_notifier.py
         env:
           SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
-        run: python epic_notifier.py
-
-      - name: Verify results
-        run: |
-          echo "=== Cache Contents ==="
-          [ -f "games_cache.json" ] && cat games_cache.json || echo "No cache file"
-          echo "======================"
