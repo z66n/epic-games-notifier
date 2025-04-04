@@ -9,16 +9,49 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - run: pip install requests
-      - run: python epic_notifier.py
+      
+      - name: Restore cache
+        uses: actions/cache@v3
+        id: game-cache
+        with:
+          path: games_cache.json
+          key: games-${{ github.run_id }}
+          restore-keys: |
+            games-
+      
+      - name: Initialize cache if missing
+        run: |
+          if [ ! -f "games_cache.json" ]; then
+            echo "[]" > games_cache.json
+            echo "Created new cache file"
+          else
+            echo "Using restored cache"
+          fi
+      
+      - name: Install dependencies
+        run: pip install requests
+      
+      - name: Run notifier
         env:
           SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
-      - name: Debug
+        run: python epic_notifier.py
+      
+      - name: Save cache
+        uses: actions/cache@v3
+        with:
+          path: games_cache.json
+          key: games-${{ github.run_id }}
+      
+      - name: Debug output
         run: |
-          echo "=== Cache Contents ==="
-          [ -f "games_cache.json" ] && jq '.' games_cache.json || echo "No cache"
-          echo "=== API Status ==="
+          echo "=== Cache Status ==="
+          echo "Cache hit:" ${{ steps.game-cache.outputs.cache-hit }}
+          echo "=== Current Cache ==="
+          [ -f "games_cache.json" ] && jq '.[].title' games_cache.json || echo "No games in cache"
+          echo "=== API Check ==="
           curl -s "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=zh-CN" | jq '.data.Catalog.searchStore.elements[].title'
