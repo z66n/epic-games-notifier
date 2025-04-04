@@ -29,18 +29,33 @@ In your forked repo:
 
 ### 4️⃣ Enjoy Automatic Alerts!
 The system will:
-- **First run**: Show all current + upcoming games  
-- **Daily checks**: Only notify about new free games + upcoming titles  
-- **Manual runs**: Use "Run workflow" button for instant checks
+- **First run**: Notify all current + upcoming free games  
+- **Subsequent runs**:
+  - 🔔 Only notify when new *current* free games are detected (vs cache)
+  - 📅 Upcoming games are shown every run (not compared against cache)
+- 🔄 Cache updates automatically when new current games appear
+
+*Manual runs follow the same notification rules*
 
 ## Technical Details 🔧
 ```mermaid
 sequenceDiagram
-    GitHub->>+Epic API: Get promotions
-    Epic API-->>-Script: Raw game data
-    Script->>+Cache: Compare with previous
-    Cache-->>-Notification: New games found?
-    Notification->>+Server酱: Send alert
+    participant GitHub
+    participant Script
+    participant EpicAPI
+    participant Server酱
+    
+    GitHub->>Script: Start (with cache if exists)
+    
+    Script->>EpicAPI: Get games
+    EpicAPI-->>Script: Current + upcoming
+    
+    alt No cache or new current games
+        Script->>Server酱: Send notification
+        Script->>GitHub: Update cache
+    else No new games
+        Script->>GitHub: Skip notification
+    end
 ```
 
 ## Troubleshooting 🛠️
