@@ -25,11 +25,3 @@ jobs:
           python epic_notifier.py
           echo "=== Debug Info ==="
           [ -f "games_cache.json" ] && jq '.' games_cache.json || echo "No cache file"
-      
-      - name: Upload error logs
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: error-logs
-          path: |
-            games_cache.json
