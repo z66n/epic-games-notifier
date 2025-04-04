@@ -2,12 +2,11 @@ name: Epic Games Notifier
 on:
   schedule:
     - cron: '30 16 * * *'  # 4:30 PM UTC daily
-  workflow_dispatch:       # Allow manual runs
+  workflow_dispatch:
 
 jobs:
   notify:
     runs-on: ubuntu-latest
-    
     steps:
       - uses: actions/checkout@v4
       
@@ -16,24 +15,21 @@ jobs:
         with:
           python-version: '3.10'
       
-      - name: Cache game data
-        uses: actions/cache@v3
-        with:
-          path: games_cache.json
-          key: ${{ runner.os }}-games-${{ hashFiles('epic_notifier.py') }}
-          restore-keys: |
-            ${{ runner.os }}-games-
-      
       - name: Install dependencies
         run: pip install requests
       
       - name: Run notifier
         env:
           SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
-        run: python epic_notifier.py
-      
-      - name: Verify results
         run: |
-          echo "=== Cached Games ==="
-          [ -f "games_cache.json" ] && jq -r '.[].title' games_cache.json || echo "No cache found"
-          echo "===================="
+          python epic_notifier.py
+          echo "=== Debug Info ==="
+          [ -f "games_cache.json" ] && jq '.' games_cache.json || echo "No cache file"
+      
+      - name: Upload error logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: error-logs
+          path: |
+            games_cache.json
