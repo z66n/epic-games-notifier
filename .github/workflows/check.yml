@@ -9,28 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      
-      - name: Cache game data
-        uses: actions/cache@v3
-        with:
-          path: games_cache.json
-          key: ${{ runner.os }}-games-${{ hashFiles('epic_notifier.py') }}
-      
-      - name: Install dependencies
-        run: pip install requests
-      
-      - name: Run notifier
+      - run: pip install requests
+      - run: python epic_notifier.py
         env:
           SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
-        run: python epic_notifier.py
-      
-      - name: Debug output
+      - name: Verify
         run: |
-          echo "=== Current Games ==="
+          echo "Cache contents:"
           [ -f "games_cache.json" ] && jq '.[].title' games_cache.json || echo "No cache"
-          echo "====================="
