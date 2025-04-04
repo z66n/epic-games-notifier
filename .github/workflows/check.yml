@@ -16,7 +16,9 @@ jobs:
       - run: python epic_notifier.py
         env:
           SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
-      - name: Verify
+      - name: Debug
         run: |
-          echo "Cache contents:"
-          [ -f "games_cache.json" ] && jq '.[].title' games_cache.json || echo "No cache"
+          echo "=== Cache Contents ==="
+          [ -f "games_cache.json" ] && jq '.' games_cache.json || echo "No cache"
+          echo "=== API Status ==="
+          curl -s "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=zh-CN" | jq '.data.Catalog.searchStore.elements[].title'
