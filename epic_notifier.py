@@ -1,9 +1,30 @@
 import os
 import requests
 import json
+from datetime import datetime, timezone
 
 SERVER_CHAN_KEY = os.getenv("SERVER_CHAN_KEY")
 CACHE_FILE = "games_cache.json"
+
+def is_currently_free(promotions):
+    """Check if game is free right now"""
+    for promo in promotions.get('promotionalOffers', []):
+        for offer in promo.get('promotionalOffers', []):
+            if (offer.get('discountSetting', {}).get('discountPercentage') == 0 and
+                datetime.now(timezone.utc) < datetime.fromisoformat(offer['endDate'])):
+                return True
+    return False
+
+def is_upcoming(promotions):
+    """Check if game is upcoming (not yet free)"""
+    now = datetime.now(timezone.utc)
+    for promo in promotions.get('promotionalOffers', []):
+        for offer in promo.get('promotionalOffers', []):
+            start = datetime.fromisoformat(offer['startDate'])
+            end = datetime.fromisoformat(offer['endDate'])
+            if start > now and offer.get('discountSetting', {}).get('discountPercentage') == 0:
+                return True
+    return False
 
 def get_free_games():
     try:
@@ -13,41 +34,36 @@ def get_free_games():
             timeout=10
         )
         data = response.json()
-        
-        # Fail fast if API structure changed
-        if not data or not data.get('data', {}).get('Catalog', {}).get('searchStore'):
-            return [], []
-            
         games = data['data']['Catalog']['searchStore']['elements']
+        
         current = []
         upcoming = []
         
         for game in games:
-            title = game.get('title', 'Unknown Game')
             promotions = game.get('promotions', {})
-            
             if not promotions:
                 continue
                 
-            # Current free games
-            if any(offer['discountSetting']['discountPercentage'] == 0 
-                   for promo in promotions.get('promotionalOffers', [])
-                   for offer in promo.get('promotionalOffers', [])):
+            if is_currently_free(promotions):
                 current.append({
-                    'title': title,
+                    'title': game.get('title', 'Unknown Game'),
                     'url': f"https://epicgames.com/store/p/{game.get('productSlug', '')}"
                 })
-            # Upcoming games
-            elif promotions.get('promotionalOffers'):
+            elif is_upcoming(promotions):
                 upcoming.append({
-                    'title': title,
-                    'date': promotions['promotionalOffers'][0]['promotionalOffers'][0]['startDate'][:10]  # YYYY-MM-DD
+                    'title': game.get('title', 'Unknown Game'),
+                    'date': next(
+                        offer['startDate'][:10] 
+                        for promo in promotions['promotionalOffers'] 
+                        for offer in promo['promotionalOffers'] 
+                        if datetime.fromisoformat(offer['startDate']) > datetime.now(timezone.utc)
+                    )
                 })
                 
         return current, upcoming
         
     except Exception:
-        return [], []  # Return empty lists on any error
+        return [], []
 
 def send_notification(current, upcoming):
     message = "🎮 **Currently Free:**\n" + "\n".join(
