@@ -27,30 +27,36 @@ In your forked repo:
    - Name: `SERVER_CHAN_KEY`
    - Value: Paste your SendKey
 
-### 4️⃣ Done! 
+### 4️⃣ Enjoy Automatic Alerts!
 The system will:
-- First run: Notify about all current free games
-- Subsequent runs: Only alert for new additions
+- **First run**: Show all current + upcoming games  
+- **Daily checks**: Only notify about new free games + upcoming titles  
+- **Manual runs**: Use "Run workflow" button for instant checks
 
-## Need Help? 🛠️
-| Issue | Solution |
-|-------|----------|
-| No notifications | 1. Check Actions tab for errors<br>2. Verify Server酱 key |
-| Wrong timing | Edit `cron: '30 16 * * *'` in [.github/workflows/check.yml](.github/workflows/check.yml) |
-
-## How It Works 🔍
-1. GitHub Actions runner spins up daily
-2. Script checks Epic's API
-3. Compares with cached games
-4. Sends only new findings via Server酱
-
+## Technical Details 🔧
 ```mermaid
-graph LR
-    A[GitHub Actions] --> B{New Games?}
-    B -->|Yes| C[Send WeChat Alert]
-    B -->|No| D[Do Nothing]
-    C --> E[Update Cache]
+sequenceDiagram
+    GitHub->>+Epic API: Get promotions
+    Epic API-->>-Script: Raw game data
+    Script->>+Cache: Compare with previous
+    Cache-->>-Notification: New games found?
+    Notification->>+Server酱: Send alert
 ```
+
+## Troubleshooting 🛠️
+| Symptom | Fix |
+|---------|-----|
+| No notifications | 1. Test Server酱 key manually:<br>`curl -X POST "https://sctapi.ftqq.com/YOUR_KEY.send" -d "title=Test&desp=Hello"`<br>2. Check Actions → Run notifier → Debug output |
+| Wrong games shown | 1. Delete `games_cache.json`<br>2. Manually trigger workflow |
+| API errors | Wait 1 hour (Epic sometimes rate-limits) |
+
+## Advanced Customization ⚙️
+- **Change schedule**: Edit `cron` in [check.yml]
+- **Test locally**:
+  ```bash
+  SERVER_CHAN_KEY=your_key python epic_notifier.py
+  ```
+- **Debug output**: See workflow's "Verify" step
 
 ---
 
