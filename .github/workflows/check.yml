@@ -23,6 +23,17 @@ jobs:
             games-
 
       - run: pip install requests
-      - run: python epic_notifier.py
-        env:
-          SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
+      - name: Run notifier
+          env:
+            SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
+          run: |
+            python epic_notifier.py
+            
+            # Send error logs if they exist
+            if [ -f "api_error.log" ]; then
+              echo "API Issues Detected:"
+              cat api_error.log
+              # Optional: Send errors to yourself via Server酱
+              curl -X POST "https://sctapi.ftqq.com/$SERVER_CHAN_KEY.send" \
+                -d "title=Epic+Notifier+API+Issue&desp=$(tail -n 3 api_error.log)"
+            fi

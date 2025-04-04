@@ -14,7 +14,7 @@ Get automated notifications for free games on the Epic Games Store, delivered vi
 ## One-Click Setup 🚀
 
 ### 1️⃣ Fork This Repository
-Click ["Fork"](https://github.com/your-repo/fork) at the top-right → Create your copy
+Click ["Fork"](https://github.com/zhongminlin/epic-games-notifier/fork) at the top-right → Create your copy
 
 ### 2️⃣ Get Your Server酱 Key
 1. Visit [Server酱](https://sct.ftqq.com/) (login with GitHub)
@@ -37,7 +37,6 @@ The system will:
 |-------|----------|
 | No notifications | 1. Check Actions tab for errors<br>2. Verify Server酱 key |
 | Wrong timing | Edit `cron: '30 16 * * *'` in [.github/workflows/check.yml](.github/workflows/check.yml) |
-| Want email too? | See [advanced config](https://example.com) |
 
 ## How It Works 🔍
 1. GitHub Actions runner spins up daily
