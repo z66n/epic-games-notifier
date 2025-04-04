@@ -20,17 +20,16 @@ jobs:
         id: game-cache
         with:
           path: games_cache.json
-          key: games-${{ github.run_id }}
+          key: games-${{ github.ref }}-${{ hashFiles('epic_notifier.py') }}
           restore-keys: |
+            games-${{ github.ref }}-
             games-
       
-      - name: Initialize cache if missing
+      - name: Initialize cache
         run: |
-          if [ ! -f "games_cache.json" ]; then
+          if [ ! -f "games_cache.json" ] || ! jq -e . games_cache.json >/dev/null 2>&1; then
             echo "[]" > games_cache.json
-            echo "Created new cache file"
-          else
-            echo "Using restored cache"
+            echo "Initialized new cache"
           fi
       
       - name: Install dependencies
@@ -41,17 +40,28 @@ jobs:
           SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
         run: python epic_notifier.py
       
+      - name: Backup cache
+        if: always()
+        run: |
+          echo "CACHE_BACKUP=$(base64 -w0 games_cache.json)" >> $GITHUB_ENV
+      
       - name: Save cache
+        if: always()
         uses: actions/cache@v3
         with:
           path: games_cache.json
-          key: games-${{ github.run_id }}
+          key: games-${{ github.ref }}-${{ hashFiles('epic_notifier.py') }}
       
       - name: Debug output
         run: |
           echo "=== Cache Status ==="
           echo "Cache hit:" ${{ steps.game-cache.outputs.cache-hit }}
           echo "=== Current Cache ==="
-          [ -f "games_cache.json" ] && jq '.[].title' games_cache.json || echo "No games in cache"
+          if [ -f "games_cache.json" ]; then
+            jq '.[].title' games_cache.json
+          else
+            echo "Using fallback cache"
+            echo "$CACHE_BACKUP" | base64 -d | jq '.[].title'
+          fi
           echo "=== API Check ==="
           curl -s "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=zh-CN" | jq '.data.Catalog.searchStore.elements[].title'
