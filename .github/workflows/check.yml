@@ -10,58 +10,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
       
-      - name: Restore cache
+      - name: Restore game cache
         uses: actions/cache@v3
         id: game-cache
         with:
           path: games_cache.json
-          key: games-${{ github.ref }}-${{ hashFiles('epic_notifier.py') }}
-          restore-keys: |
-            games-${{ github.ref }}-
-            games-
+          key: epic-games-cache
       
-      - name: Initialize cache
-        run: |
-          if [ ! -f "games_cache.json" ] || ! jq -e . games_cache.json >/dev/null 2>&1; then
-            echo "[]" > games_cache.json
-            echo "Initialized new cache"
-          fi
+      - run: pip install requests
       
-      - name: Install dependencies
-        run: pip install requests
-      
-      - name: Run notifier
+      - run: python epic_notifier.py
         env:
           SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
-        run: python epic_notifier.py
       
-      - name: Backup cache
-        if: always()
-        run: |
-          echo "CACHE_BACKUP=$(base64 -w0 games_cache.json)" >> $GITHUB_ENV
-      
-      - name: Save cache
-        if: always()
+      - name: Save updated cache
         uses: actions/cache@v3
         with:
           path: games_cache.json
-          key: games-${{ github.ref }}-${{ hashFiles('epic_notifier.py') }}
+          key: epic-games-cache
       
-      - name: Debug output
+      - name: Debug
         run: |
           echo "=== Cache Status ==="
           echo "Cache hit:" ${{ steps.game-cache.outputs.cache-hit }}
-          echo "=== Current Cache ==="
-          if [ -f "games_cache.json" ]; then
-            jq '.[].title' games_cache.json
-          else
-            echo "Using fallback cache"
-            echo "$CACHE_BACKUP" | base64 -d | jq '.[].title'
-          fi
-          echo "=== API Check ==="
+          echo "=== Cache Contents ==="
+          [ -f "games_cache.json" ] && jq '.' games_cache.json || echo "No cache"
+          echo "=== API Status ==="
           curl -s "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=zh-CN" | jq '.data.Catalog.searchStore.elements[].title'
