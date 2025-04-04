@@ -3,88 +3,57 @@ import requests
 import json
 from datetime import datetime
 
-# Configuration
+# Config
 SERVER_CHAN_KEY = os.getenv("SERVER_CHAN_KEY")
 CACHE_FILE = "games_cache.json"
-ERROR_FILE = "api_error.log"
-
-def detect_api_structure(response):
-    """Try multiple response format patterns"""
-    data = response.json()
-    
-    # Pattern 1 (Current)
-    if 'data' in data and 'Catalog' in data['data']:
-        return data['data']['Catalog']['searchStore']['elements']
-    
-    # Pattern 2 (Alternative observed in past)
-    if 'elements' in data:
-        return data['elements']
-    
-    # Pattern 3 (Fallback)
-    return data.get('games', [])
 
 def get_free_games():
-    url = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions"
-    params = {"locale": "zh-CN", "country": "CN"}
-    
+    """Get current and upcoming free games with simple error handling"""
     try:
-        response = requests.get(url, params=params, timeout=20)
-        response.raise_for_status()
+        url = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions"
+        params = {"locale": "zh-CN", "country": "CN"}
+        response = requests.get(url, params=params, timeout=10)
+        data = response.json()
         
-        games = detect_api_structure(response)
-        if not games:
-            log_error("API returned empty data", response.text)
-            return [], []
-            
+        elements = data['data']['Catalog']['searchStore']['elements']
+        
         current_free = []
-        for game in games:
-            try:
-                if is_currently_free(game):
-                    current_free.append({
-                        'title': game.get('title', 'Unknown'),
-                        'productSlug': game.get('productSlug', ''),
-                        'startDate': find_deep(game, ['promotions', 'promotionalOffers', 0, 'promotionalOffers', 0, 'startDate'])
-                    })
-            except Exception as e:
-                log_error(f"Game parsing failed: {str(e)}", game)
+        upcoming_free = []
         
-        return current_free, []
+        for game in elements:
+            promotions = game.get('promotions', {})
+            offers = promotions.get('promotionalOffers', [])
+            
+            if offers:
+                # Current free games
+                if any(offer['discountSetting']['discountPercentage'] == 0 
+                       for promo in offers 
+                       for offer in promo['promotionalOffers']):
+                    current_free.append({
+                        'title': game['title'],
+                        'url': f"https://www.epicgames.com/store/p/{game['productSlug']}"
+                    })
+                # Upcoming games
+                else:
+                    upcoming_free.append({
+                        'title': game['title'],
+                        'start_date': offers[0]['promotionalOffers'][0]['startDate'][:10]  # YYYY-MM-DD
+                    })
+        
+        return current_free, upcoming_free
         
     except Exception as e:
-        log_error(f"API request failed: {str(e)}")
-        return [], []
-
-def is_currently_free(game):
-    """Multi-layered check for free status"""
-    discount = find_deep(game, ['promotions', 'promotionalOffers', 0, 'promotionalOffers', 0, 'discountSetting', 'discountPercentage'])
-    return discount == 0
-
-def find_deep(obj, keys):
-    """Safely navigate nested structures"""
-    for key in keys:
-        try:
-            obj = obj[key]
-        except (TypeError, KeyError, IndexError):
-            return None
-    return obj
-
-def log_error(message, details=""):
-    """Record API issues with timestamp"""
-    with open(ERROR_FILE, 'a') as f:
-        f.write(f"{datetime.now()} - {message}\n")
-        if details:
-            f.write(f"Details: {str(details)[:500]}...\n\n")
-
-# ... (rest of the script remains the same)
+        print(f"API Error: {e}")
+        return [], []  # Return empty lists on failure
 
 def send_notification(current, upcoming):
-    if not current and not upcoming:
-        return
-        
-    message = "🎮 **Currently Free:**\n" + "\n".join(
-        f"- {game['title']}: https://www.epicgames.com/store/p/{game['productSlug']}"
-        for game in current
-    )
+    """Send clean Server酱 message"""
+    message = "🎮 **Currently Free:**\n"
+    message += "\n".join(f"- [{game['title']}]({game['url']})" for game in current)
+    
+    if upcoming:
+        message += "\n\n⏳ **Coming Soon:**\n"
+        message += "\n".join(f"- {game['title']} (Free on {game['start_date']})" for game in upcoming)
     
     requests.post(
         f"https://sctapi.ftqq.com/{SERVER_CHAN_KEY}.send",
@@ -93,17 +62,19 @@ def send_notification(current, upcoming):
     )
 
 if __name__ == "__main__":
-    current, upcoming = get_free_games()
-    
+    # Load cache
     try:
-        with open(CACHE_FILE, 'r') as f:
-            cached = json.load(f)
+        with open(CACHE_FILE) as f:
+            cached_games = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
-        cached = []
+        cached_games = []
     
-    new_games = [g for g in current if g not in cached]
+    # Check games
+    current, upcoming = get_free_games()
+    new_games = [g for g in current if g not in cached_games]
     
+    # Notify if new games found
     if new_games:
-        send_notification(new_games, upcoming)
+        send_notification(current, upcoming)
         with open(CACHE_FILE, 'w') as f:
             json.dump(current, f)
