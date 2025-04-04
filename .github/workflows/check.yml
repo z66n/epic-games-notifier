@@ -1,39 +1,37 @@
 name: Epic Games Notifier
 on:
   schedule:
-    - cron: '30 16 * * *'  # 16:30 UTC daily
+    - cron: '30 16 * * *'  # 16:30 UTC
   workflow_dispatch:
 
 jobs:
   notify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for cache actions
+    
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
       
       - name: Cache game data
         uses: actions/cache@v3
         with:
-          path: games_cache.json
-          key: games-${{ github.ref }}-${{ hashFiles('epic_notifier.py') }}
-          restore-keys: |
-            games-${{ github.ref }}-
-            games-
+          path: |
+            games_cache.json
+            api_error.log
+          key: ${{ runner.os }}-games-${{ hashFiles('epic_notifier.py') }}
+          
+      - name: Install dependencies
+        run: pip install requests
 
-      - run: pip install requests
       - name: Run notifier
-          env:
-            SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
-          run: |
-            python epic_notifier.py
-            
-            # Send error logs if they exist
-            if [ -f "api_error.log" ]; then
-              echo "API Issues Detected:"
-              cat api_error.log
-              # Optional: Send errors to yourself via Server酱
-              curl -X POST "https://sctapi.ftqq.com/$SERVER_CHAN_KEY.send" \
-                -d "title=Epic+Notifier+API+Issue&desp=$(tail -n 3 api_error.log)"
-            fi
+        env:
+          SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
+        run: |
+          python epic_notifier.py
+          [ -f "api_error.log" ] && echo "API Issues:" && cat api_error.log
