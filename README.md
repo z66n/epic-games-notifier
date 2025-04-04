@@ -1,8 +1,8 @@
-# Epic Games Free Notifier 🎮
+# Epic Free Games Notifier 🎮
 
 Get automated notifications for free games on the Epic Games Store, delivered via [Server酱](https://sct.ftqq.com/) to your WeChat.
 
-![Example Notification](https://i.imgur.com/example.png)  
+![Example Notification](https://github.com/user-attachments/assets/0531d2c8-5bd5-4582-902d-68b98dfb8bd5)
 *(Example notification showing current and upcoming games)*
 
 ## Features ✨
