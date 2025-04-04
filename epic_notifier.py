@@ -1,5 +1,6 @@
 import os
 import requests
+import json  # ADD THIS IMPORT
 from datetime import datetime
 
 SERVER_CHAN_KEY = os.getenv("SERVER_CHAN_KEY")
@@ -33,11 +34,12 @@ if __name__ == "__main__":
     if not current_games:
         exit()
     
+    # FIXED CACHE HANDLING
     try:
         with open(CACHE_FILE, 'r') as f:
             cached_games = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
-        cached_games = []
+        cached_games = []  # Initialize empty cache if file doesn't exist
     
     new_games = [
         game for game in current_games 

@@ -1,24 +1,28 @@
-name: Check Epic Free Games
+name: Epic Games Notifier
 on:
   schedule:
-    - cron: '30 16 * * *'  # 16:30 every day (UTC)
-  workflow_dispatch:  # Allow manual runs
+    - cron: '30 16 * * *'  # 16:30 UTC daily
+  workflow_dispatch:
 
 jobs:
-  check:
+  notify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
       
-      - name: Install dependencies
-        run: pip install requests
-      
-      - name: Run notifier
+      - name: Cache game data
+        uses: actions/cache@v3
+        with:
+          path: games_cache.json
+          key: games-${{ github.ref }}-${{ hashFiles('epic_notifier.py') }}
+          restore-keys: |
+            games-${{ github.ref }}-
+            games-
+
+      - run: pip install requests
+      - run: python epic_notifier.py
         env:
           SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
-        run: python epic_notifier.py
