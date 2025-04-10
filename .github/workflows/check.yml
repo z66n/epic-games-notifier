@@ -14,12 +14,18 @@ jobs:
         with:
           python-version: '3.10'
       
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+      
       - name: Restore game cache
         uses: actions/cache@v3
         id: game-cache
         with:
           path: games_cache.json
-          key: epic-games-cache
+          key: epic-games-${{ steps.date.outputs.date }}
+          restore-keys: |
+            epic-games-
       
       - run: pip install requests
       
@@ -28,10 +34,11 @@ jobs:
           SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
       
       - name: Save updated cache
+        if: always()  # Ensure save even if script fails
         uses: actions/cache@v3
         with:
           path: games_cache.json
-          key: epic-games-cache
+          key: epic-games-${{ steps.date.outputs.date }}
       
       - name: Debug
         run: |
