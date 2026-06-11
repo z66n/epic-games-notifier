@@ -4,7 +4,7 @@
 
 Get automated notifications for free games on the Epic Games Store, delivered via [Server酱](https://sct.ftqq.com/) to your WeChat.
 
-![Example Notification](https://github.com/user-attachments/assets/0531d2c8-5bd5-4582-902d-68b98dfb8bd5)
+![Example Notification](https://github.com/user-attachments/assets/1a82c313-7407-4679-9abd-8da7d51c068d)
 *(Example notification showing current and upcoming games)*
 
 ## Features ✨

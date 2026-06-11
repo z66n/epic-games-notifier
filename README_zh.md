@@ -4,7 +4,7 @@
 
 通过 [Server酱](https://sct.ftqq.com/) 获取 Epic Games Store 免费游戏的自动通知，直接发送到你的微信。
 
-![示例通知](https://github.com/user-attachments/assets/0531d2c8-5bd5-4582-902d-68b98dfb8bd5)
+![示例通知](https://github.com/user-attachments/assets/1a82c313-7407-4679-9abd-8da7d51c068d)
 *（示例通知显示当前和即将免费的游戏）*
 
 ## 功能特性 ✨
