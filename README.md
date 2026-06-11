@@ -34,14 +34,14 @@ The notifier runs continuously and intelligently:
 2. Copy your `SendKey` (looks like `SCT123456...`)
 
 ### Step 2️⃣: Configure the Notifier
-In `main.py`, replace the placeholder key with your actual key:
+In `app.py`, replace the placeholder key with your actual key:
 ```python
 SERVER_CHAN_KEY = "YOUR_ACTUAL_SENDKEY_HERE"
 ```
 
 Optionally, adjust the timezone and daily check time:
 ```python
-TIME_ZONE = "America/Toronto"  # Change to your timezone
+TIME_ZONE = "UTC"  # Change to your timezone
 sleep_until(11, 10)             # Daily Check at 11:10
 ```
 
@@ -50,12 +50,9 @@ sleep_until(11, 10)             # Daily Check at 11:10
 **For Pterodactyl/Jexactyl:**
 1. Create a new "Server" in your game panel
 2. Upload these files to the server:
-   - `main.py`
+   - `app.py`
    - `requirements.txt`
-3. Set the **startup command** to:
-   ```
-   python main.py
-   ```
+3. Make sure your startup command and settings points to the right files
 4. Start the server - it will run continuously
 
 ### Step 4️⃣: Verify It's Working
@@ -78,7 +75,7 @@ sleep_until(11, 10)             # Daily Check at 11:10
 ## Advanced Configuration ⚙️
 
 **Change daily check time:**
-Edit the last `sleep_until()` call in `main.py`:
+Edit the last `sleep_until()` call in `app.py`:
 ```python
 sleep_until(16, 30)  # Changes from 11:10 to 16:30 (UTC based on your TZ)
 ```

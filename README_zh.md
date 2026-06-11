@@ -34,14 +34,14 @@
 2. 复制你的 `SendKey`（格式类似 `SCT123456...`）
 
 ### 第 2️⃣ 步：配置提醒器
-在 `main.py` 中，将占位符密钥替换为你的实际密钥：
+在 `app.py` 中，将占位符密钥替换为你的实际密钥：
 ```python
 SERVER_CHAN_KEY = "你的实际SendKey"
 ```
 
 可选地，调整时区和每日检查时间：
 ```python
-TIME_ZONE = "America/Toronto"  # 改为你的时区
+TIME_ZONE = "UTC"  # 改为你的时区
 sleep_until(11, 10)             # 每天 11:10 进行检查（基于你的时区）
 ```
 
@@ -50,12 +50,9 @@ sleep_until(11, 10)             # 每天 11:10 进行检查（基于你的时区
 **对于 Pterodactyl/Jexactyl：**
 1. 在游戏面板中创建一个新的"服务器"
 2. 上传以下文件到服务器：
-   - `main.py`
+   - `app.py`
    - `requirements.txt`
-3. 设置**启动命令**为：
-   ```
-   python main.py
-   ```
+3. 确保启动命令和设置指向正确的文件
 4. 启动服务器 - 它将持续运行
 
 ### 第 4️⃣ 步：验证是否正常工作
@@ -78,7 +75,7 @@ sleep_until(11, 10)             # 每天 11:10 进行检查（基于你的时区
 ## 高级配置 ⚙️
 
 **更改每日检查时间：**
-编辑 `main.py` 中的最后一个 `sleep_until()` 调用：
+编辑 `app.py` 中的最后一个 `sleep_until()` 调用：
 ```python
 sleep_until(16, 30)  # 从 11:10 改为 16:30（基于你的时区）
 ```
