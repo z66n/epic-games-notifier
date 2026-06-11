@@ -1,77 +1,105 @@
 # Epic Free Games Notifier 🎮
 
+[English](README.md) | [简体中文](README_zh.md)
+
 Get automated notifications for free games on the Epic Games Store, delivered via [Server酱](https://sct.ftqq.com/) to your WeChat.
 
 ![Example Notification](https://github.com/user-attachments/assets/0531d2c8-5bd5-4582-902d-68b98dfb8bd5)
 *(Example notification showing current and upcoming games)*
 
 ## Features ✨
-- ✅ **Daily automatic checks** at 16:30 UTC
+- ✅ **Smart continuous checking** - runs 24/7 with intelligent sleep scheduling
 - 🔍 Clear separation between **claimable now** vs **coming soon**
-- 💾 Smart caching prevents duplicate alerts
-- 🛡️ No servers needed - runs entirely on GitHub
+- 💾 Automatic caching prevents duplicate alerts
+- 🎮 Perfect for **Pterodactyl/Jexactyl** game panel hosting
+- 🏃 No external dependencies - entirely self-contained
 
-## One-Click Setup 🚀
+## How It Works 🔄
 
-### 1️⃣ Fork This Repository
-Click ["Fork"](https://github.com/z66n/epic-games-notifier/fork) at the top-right → Create your copy
+The notifier runs continuously and intelligently:
+1. **Checks for free games** every time it wakes up
+2. **Smart notifications**:
+   - Sends alerts only when **new current free games** appear (vs cache)
+   - Always shows **upcoming games** for reference
+   - Cache updates automatically when new current games are detected
+3. **Intelligent sleep** scheduling:
+   - If upcoming games exist: sleeps until the earliest upcoming game starts + 10 minutes
+   - If no upcoming games: sleeps until the next 11:10 (configurable)
+4. **Runs forever** - perfect for always-on hosting like Pterodactyl/Jexactyl
 
-### 2️⃣ Get Your Server酱 Key
+## Setup for Pterodactyl/Jexactyl 🚀
+
+### Step 1️⃣: Get Your Server酱 Key
 1. Visit [Server酱](https://sct.ftqq.com/) (login with GitHub)
 2. Copy your `SendKey` (looks like `SCT123456...`)
 
-### 3️⃣ Configure Secrets
-In your forked repo:
-1. Go to **Settings** → **Secrets and variables** → **Actions**
-2. Click **New repository secret**:
-   - Name: `SERVER_CHAN_KEY`
-   - Value: Paste your SendKey
-
-### 4️⃣ Enjoy Automatic Alerts!
-The system will:
-- **First run**: Notify all current + upcoming free games  
-- **Subsequent runs**:
-  - 🔔 Only notify when new *current* free games are detected (vs cache)
-  - 📅 Upcoming games are shown every run (not compared against cache)
-- 🔄 Cache updates automatically when new current games appear
-
-*Manual runs follow the same notification rules*
-
-## Technical Details 🔧
-```mermaid
-sequenceDiagram
-    participant GitHub
-    participant Script
-    participant EpicAPI
-    participant Server酱
-    
-    GitHub->>Script: Start (with cache if exists)
-    
-    Script->>EpicAPI: Get games
-    EpicAPI-->>Script: Current + upcoming
-    
-    alt No cache or new current games
-        Script->>Server酱: Send notification
-        Script->>GitHub: Update cache
-    else No new games
-        Script->>GitHub: Skip notification
-    end
+### Step 2️⃣: Configure the Notifier
+In `main.py`, replace the placeholder key with your actual key:
+```python
+SERVER_CHAN_KEY = "YOUR_ACTUAL_SENDKEY_HERE"
 ```
 
+Optionally, adjust the timezone and daily check time:
+```python
+TIME_ZONE = "America/Toronto"  # Change to your timezone
+sleep_until(11, 10)             # Daily Check at 11:10
+```
+
+### Step 3️⃣: Set Up on Your Game Panel
+
+**For Pterodactyl/Jexactyl:**
+1. Create a new "Server" in your game panel
+2. Upload these files to the server:
+   - `main.py`
+   - `requirements.txt`
+3. Set the **startup command** to:
+   ```
+   python main.py
+   ```
+4. Start the server - it will run continuously
+
+### Step 4️⃣: Verify It's Working
+- Check the **console output** in your panel
+- You should see logs like:
+  ```
+  2026-06-07 11:10:00 EST - New games found
+  Sleeping until 2026-06-12 12:34:56 EST (432000 seconds)
+  ```
+
 ## Troubleshooting 🛠️
+
 | Symptom | Fix |
 |---------|-----|
-| No notifications | 1. Test Server酱 key manually:<br>`curl -X POST "https://sctapi.ftqq.com/YOUR_KEY.send" -d "title=Test&desp=Hello"`<br>2. Check Actions → Run notifier → Debug output |
-| Wrong games shown | 1. Delete `games_cache.json`<br>2. Manually trigger workflow |
+| No notifications | 1. Test Server酱 key manually:<br>`curl -X POST "https://sctapi.ftqq.com/YOUR_KEY.send" -d "title=Test&desp=Hello"`<br>2. Check server console output |
+| ImportError: No module named 'requests' | Run: `pip install requests` (or let your panel install from requirements.txt) |
+| Wrong games shown | Delete `games_cache.json` from server storage, then restart |
 | API errors | Wait 1 hour (Epic sometimes rate-limits) |
 
-## Advanced Customization ⚙️
-- **Change schedule**: Edit `cron` in [check.yml]
-- **Test locally**:
-  ```bash
-  SERVER_CHAN_KEY=your_key python epic_notifier.py
-  ```
-- **Debug output**: See workflow's "Verify" step
+## Advanced Configuration ⚙️
+
+**Change daily check time:**
+Edit the last `sleep_until()` call in `main.py`:
+```python
+sleep_until(16, 30)  # Changes from 11:10 to 16:30 (UTC based on your TZ)
+```
+
+**Change timezone:**
+```python
+TIME_ZONE = "Europe/London"  # List of timezones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+```
+
+**Change check delays:**
+Modify the earliest upcoming game offset:
+```python
+target_time = earliest_upcoming + timedelta(minutes=20)  # Changed from 10 to 20 minutes
+```
+
+## Requirements 📦
+
+- Python 3.9+
+- `requests` library (see `requirements.txt`)
+- Internet connection
+- Active Server酱 account
 
 ---
 
