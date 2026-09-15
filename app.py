@@ -4,10 +4,13 @@ import json
 import time
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
+from dotenv import load_dotenv
 
-SERVER_CHAN_KEY = "SCT1a2b3c4d5e6f7g8h9i0j"  # 替换为你的Server酱Key
+load_dotenv()
+
+SERVER_CHAN_KEY = os.environ["SERVER_CHAN_KEY"]
+TIME_ZONE = os.environ.get("TIME_ZONE", "UTC")
 CACHE_FILE = "games_cache.json"
-TIME_ZONE = "UTC" # 替换为你的时区，例如 "Asia/Shanghai" 或 "America/New_York"
 
 
 def safe_get(data, keys, default=None):

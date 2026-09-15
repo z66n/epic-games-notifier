@@ -34,15 +34,14 @@ The notifier runs continuously and intelligently:
 2. Copy your `SendKey` (looks like `SCT123456...`)
 
 ### Step 2️⃣: Configure the Notifier
-In `app.py`, replace the placeholder key with your actual key:
-```python
-SERVER_CHAN_KEY = "YOUR_ACTUAL_SENDKEY_HERE"
+Enter your key into `.env`:
+```
+SERVER_CHAN_KEY=YOUR_ACTUAL_SENDKEY_HERE
 ```
 
-Optionally, adjust the timezone and daily check time:
-```python
-TIME_ZONE = "UTC"  # Change to your timezone
-sleep_until(11, 10)             # Daily Check at 11:10
+Optionally, adjust the timezone:
+```
+TIME_ZONE=UTC  # Change to your timezone
 ```
 
 ### Step 3️⃣: Set Up on Your Game Panel
@@ -52,6 +51,7 @@ sleep_until(11, 10)             # Daily Check at 11:10
 2. Upload these files to the server:
    - `app.py`
    - `requirements.txt`
+   - `.env`
 3. Make sure your startup command and settings points to the right files
 4. Start the server - it will run continuously
 
@@ -80,11 +80,6 @@ Edit the last `sleep_until()` call in `app.py`:
 sleep_until(16, 30)  # Changes from 11:10 to 16:30 (UTC based on your TZ)
 ```
 
-**Change timezone:**
-```python
-TIME_ZONE = "Europe/London"  # List of timezones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-```
-
 **Change check delays:**
 Modify the earliest upcoming game offset:
 ```python
@@ -94,7 +89,6 @@ target_time = earliest_upcoming + timedelta(minutes=20)  # Changed from 10 to 20
 ## Requirements 📦
 
 - Python 3.9+
-- `requests` library (see `requirements.txt`)
 - Internet connection
 - Active Server酱 account
 

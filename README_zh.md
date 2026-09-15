@@ -34,15 +34,14 @@
 2. 复制你的 `SendKey`（格式类似 `SCT123456...`）
 
 ### 第 2️⃣ 步：配置提醒器
-在 `app.py` 中，将占位符密钥替换为你的实际密钥：
-```python
-SERVER_CHAN_KEY = "你的实际SendKey"
+将密钥输入`.env`文件：
+```
+SERVER_CHAN_KEY=你的实际SendKey
 ```
 
-可选地，调整时区和每日检查时间：
-```python
-TIME_ZONE = "UTC"  # 改为你的时区
-sleep_until(11, 10)             # 每天 11:10 进行检查（基于你的时区）
+可选地，调整时区：
+```
+TIME_ZONE=UTC  # 改为你的时区
 ```
 
 ### 第 3️⃣ 步：在游戏面板上部署
@@ -52,6 +51,7 @@ sleep_until(11, 10)             # 每天 11:10 进行检查（基于你的时区
 2. 上传以下文件到服务器：
    - `app.py`
    - `requirements.txt`
+   - `.env`
 3. 确保启动命令和设置指向正确的文件
 4. 启动服务器 - 它将持续运行
 
@@ -80,11 +80,6 @@ sleep_until(11, 10)             # 每天 11:10 进行检查（基于你的时区
 sleep_until(16, 30)  # 从 11:10 改为 16:30（基于你的时区）
 ```
 
-**更改时区：**
-```python
-TIME_ZONE = "Europe/London"  # 时区列表: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-```
-
 **增加检查延迟：**
 修改最早即将推出游戏的偏移量：
 ```python
@@ -94,7 +89,6 @@ target_time = earliest_upcoming + timedelta(minutes=20)  # 从 10 改为 20 分�
 ## 系统要求 📦
 
 - Python 3.9+
-- `requests` 库（见 `requirements.txt`）
 - 网络连接
 - 有效的 Server酱 账户
 
