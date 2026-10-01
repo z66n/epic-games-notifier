@@ -39,9 +39,10 @@ Enter your key into `.env`:
 SERVER_CHAN_KEY=YOUR_ACTUAL_SENDKEY_HERE
 ```
 
-Optionally, adjust the timezone:
+Optionally, adjust the timezone or port:
 ```
 TIME_ZONE=UTC  # Change to your timezone
+PORT=5000  # Change to your port
 ```
 
 ### Step 3️⃣: Set Up on Your Game Panel

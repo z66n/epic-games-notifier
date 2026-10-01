@@ -8,13 +8,37 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
+
+# Initialize environment variables
 load_dotenv()
 
 SERVER_CHAN_KEY = os.environ["SERVER_CHAN_KEY"]
 TIME_ZONE = os.environ.get("TIME_ZONE", "UTC")
 CACHE_FILE = "games_cache.json"
+PORT = int(os.environ.get("PORT") or os.environ.get("SERVER_PORT") or 8000)
 
 
+# Health check server
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path in ("/", "/health"):
+            self.send_response(200)
+            self.end_headers()
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, format, *args):
+        pass
+
+
+def start_health_server(port):
+    server = HTTPServer(("0.0.0.0", port), HealthHandler)
+    print(f"Health endpoint listening on 0.0.0.0:{port}")
+    server.serve_forever()
+
+
+# API parsing and scheduling 
 def safe_get(data, keys, default=None):
     for key in keys:
         try:
@@ -220,28 +244,11 @@ def sleep_until(target_dt_or_hour, minute=None, second=0):
     )
     time.sleep(seconds)
 
-# Health check server
-class HealthHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path in ("/", "/health"):
-            self.send_response(200)
-            self.end_headers()
-        else:
-            self.send_response(404)
-            self.end_headers()
 
-    def log_message(self, format, *args):
-        pass
+# Start health check server
+threading.Thread(target=start_health_server, args=(PORT,), daemon=True).start()
 
-def start_health_server():
-    port = int(os.environ.get("PORT") or os.environ.get("SERVER_PORT") or 8000)
-    server = HTTPServer(("0.0.0.0", port), HealthHandler)
-    print(f"Health endpoint listening on 0.0.0.0:{port}")
-    server.serve_forever()
-
-threading.Thread(target=start_health_server, daemon=True).start()
-
-# run forever
+# Main loop
 while True:
     earliest_upcoming = check()
 
